@@ -1,0 +1,120 @@
+README for HW3 CSE101:
+
+Matthew Lo November 2022
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Code Files: Makefile, wordrange.cpp, wordrange_functions.cpp, wordrange.h
+Test Files: simple-input.txt, simple-output.txt, allwords-basic.txt, allwords-basic-output.txt
+						allwords-more-range.txt, allwords-more-range-output.txt
+Student Test Files (Thanks to Andrew Hu): s-in.txt, s-out.txt
+https://piazza.com/class/l8dis4kef4h2au/post/519
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Overview: 
+In this homework, the code is split up into three different files: wordrange.cpp, wordrange_functions.cpp, wordrange.h
+
+My approach: 
+Intialize an AVL tree object and process each line of the given input file. If command is "insert" then I insert the given value into the AVl tree.
+If the command is "range", then I would traverse through the AVL tree finding all the values within the given range and incrementing a counter
+variable. Then I would return the counter variable representing the total number of Nodes within the given range.
+
+wordrange.cpp:
+		In wordrange.cpp is where main() is. In main() is where I am reading from the inputted file and writing to the given output file. I first check
+		if the user provides three arguments: the executable, the input file, and the output file. If not, I throw an error. I then create an AVL
+		tree object. For each line of the input file I check the given command. If the command is "i", it means to insert the given value from the input 
+		into the AVL tree. If the command is "r", it means to count the number of nodes in the AVL tree that fall within the given range of values and
+		then output it into the given output file.
+
+wordrange_functions.cpp:
+		In wordrange_functions.cpp is where I store all the functions dealing with the AVL tree and processing the range queries.
+
+		void AVL :: insert(string val):
+				A wrapper function that initializes a Node object with the given val. If the root of the AVL tree does not exist, it sets the root of the AVL
+				tree to the new Node object. Otherwise it calls the actual insert function with the root of the AVL tree and new Node as parameters.
+
+		void AVL :: insert(Node* start, Node* new_insert):
+				In this function it recursively goes through the tree to place the given new_insert node at the correct spot in the AVL tree. It traverses 
+				the tree through comparing the new_insert->key with the current Node->key the traversal visits. As the function recursively traverses the tree
+				each Node that is visited has it substree_sizes updated by 1. Eventually if at a given node, its left or right child is NULL, I insert the 
+				new_insert node at either the left or right child. I then call the balanceTree() function to balance the AVL tree after inserting a new Node. 
+				The function also takes care of duplicates by calling decrementSubtree() and deleting the node.
+
+		void AVL :: decrementSubtree(Node* start, Node* new_insert):
+				In this function it recursively traverses through the AVL tree up until it "visits" the duplicate node, new_insert. It decrements the substree_sizes 
+				of each Node it visits to revert the changes of trying to insert a duplicate, new_insert. 
+
+		void AVL :: balanceTree(Node* start, Node* new_insert):
+				In this function it takes the most recently inserted node, Node* new_insert and the parent of it, Node* start, and traverses up to the root
+				of the AVL tree, balancing the tree as it goes up. At each traversal, it updates the Node* start->height and then calculates the node's 
+				balancing factor which is used to determine the circumstances of which rotation is used to balance out the tree from Node* start. Depending 
+				on the conditions, it calls either leftRotate, rightRotate, leftRotate + rightRotate, or rightRotate + leftRotate. These rotations allow to
+				balance the tree the traversal is at.
+		
+		int AVL :: height(Node* start):
+				In this function, it returns the height of a given Node* start. If the given Node is NULL, return 0.
+		
+		int AVL :: substree_sizes(Node* start):
+				In this function, it returns the subtree_size of a give Node* start including the node itself. If the given Node is NULL, return 0.
+		
+		Node* AVL :: rightRotate(Node* start):
+				In this function, it does a right rotation of a given Node* start. It stores the left child of Node* start into Node* x, and then stores
+				the right child of the new Node* x in Node* x_child. The first part of the rotation is setting the Node* start left child to Node* x_child which 
+				separates the old Node* start's left child from Node* start. From there the former left child of Node* start that is stored in Node* x, takes 
+				Node* start as its left child, effectively making the former left child, Node* x, the parent of Node* start. This is the "right rotation" part of
+				the function. From there I update the respective heights and subtree sizes of Node* start and Node* x.
+		
+		Node* AVL :: leftRotate(Node* start):
+				In this function it is basically just rightRotate() but flipped in terms of the Node* x that takes position of being a parent of the given
+				Node* start.
+		
+		string AVL :: printInOrder():
+				A wrapper function that calls printInOrder(Node* start) with the root of the AVL tree as the parameter.
+
+		string AVL :: printInOrder(Node* start):
+				A function that prints the AVL tree in an InOrder fashion.
+
+		Node* AVL :: lca(string str1, string str2):
+				A wrapper function for the actual lca function that takes in the root of the AVL tree, str1 and str2 as parameters
+
+		Node* AVL :: lca(Node* start, string str1, string str2):
+				In this function it recursively traverses through the AVL tree to find the LCA node of string str1 and string str2, whether or not there are
+				nodes that have str1 and str2 as keys. The first case where a node is a LCA is if the node contains the str1 or str2 as a key, which means str1
+				or str2 is the LCA node. The second case if the node's key is in between the ranges of str1 and str2, in which it is a LCA.
+
+		int AVL :: range(string str1, string str2):
+				In this function, it gets the LCA of the given strings, str1 and str2 and uses the LCA as a starting point to begin finding the range between
+				str1 and str2. It calls rangeLeft() and rangeRight() to traverse from the LCA in each of its own respective matter. The two functions then return
+				the number of Nodes found through each traversal and I store the total from both traversals and add 1 to include the LCA also. Then I return 
+				the range between str1 and str2.
+		
+		int AVL :: rangeLeft(Node* start, string str1, string str2):
+				In this function, it traverses in a left way manner and finds nodes within the given str1 and str2 range. To save recursive calls it utilizes
+				subtree_sizes of the right child to add on to the range. It then returns the overall number of nodes found in the range in the "left" side.
+
+		int AVL :: rangeRight(Node* start, string str1, string str2):
+				In this function, it traverses in a right way manner and finds nodes within the given str1 and str2 range. TO save recursive calls it utilizes
+				subtree_sizes of the left child to add on to the range. It then returns the overall number of nodes found in the range in the "right" side.
+
+wordrange.h
+		This is the header file that contains the implementation of the Node class and the AVL class.
+
+		In the Node class there are 6 variables.
+		string key: Stores the key of the Node
+		Node* left, *right, *parent: Stores the left and right child, and parent Node of the Node object.
+		int subtree_sizes: Stores the number of descendants of the given Node object
+		int height: Stores the height from the given Node object down to the leafs of the AVL tree.
+		Node(): A constructor that sets the Node* left, right, and parent to NULL
+		Node(string val): A constructor that sets the given Node object's key to the given val and sets the Node* left, right, and parent to NULL.
+
+		In the AVL class is where I store the root of the AVL tree and the declarations of the functions from wordrange_functions.cpp which are functions
+		under the AVL class.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Sources I used for my code:
+
+https://en.wikipedia.org/wiki/AVL_tree //Help me get a deep understanding of how AVL tree work
+https://www.cs.usfca.edu/~galles/visualization/AVLtree.html //Help me to visualize the AVL tree and how balances work through rotations
+https://cplusplus.com/doc/tutorial/files/ //Used to understand how to stream for input/output files and read files
+https://www.w3schools.com/cpp/cpp_constructors.asp //Used to understand how to implement constructors in a class
+https://www.geeksforgeeks.org/stringstream-c-applications/ //Used to understand how to use stringstream library in processing user input
+Used similar Makefile from "Hello world, with bells and whistles" codio
+Used similar input handling and insert function as "BST codes" codio
